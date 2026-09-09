@@ -10,12 +10,12 @@ miễn phí, không quản lý đơn hàng / quảng cáo / tự động đăng 
 
 | Nhóm | Bảng | Mô tả |
 |---|---|---|
-| **Workspace** | `workspaces`, `workspace_members` | Không gian làm việc, phân quyền thành viên |
+| **Auth** | `users` | Tài khoản người dùng |
 | **Brand** | `brand_profiles`, `content_pillars`, `personas` | Hồ sơ thương hiệu — nguồn đầu vào cho AI |
 | **Channel** | `channels`, `followed_channels`, `trend_signals` | Kênh của mình + kênh theo dõi + tín hiệu xu hướng |
 | **Studio** | `ideas`, `contents`, `assets` | Ý tưởng → nội dung → ảnh/video |
 
-Trục cô lập dữ liệu: **mọi bảng nghiệp vụ đều có `workspace_id`**, đảm bảo
+Trục cô lập dữ liệu: **mọi bảng nghiệp vụ đều có `user_id`**, đảm bảo
 dữ liệu của shop A không lộ sang shop B.
 
 ---
@@ -39,51 +39,18 @@ dữ liệu của shop A không lộ sang shop B.
 
 ---
 
-### 2.2 Nhóm Workspace
-
-#### `workspaces` — Không gian làm việc
-Mỗi shop là một workspace độc lập. Dữ liệu hoàn toàn cô lập giữa các workspace.
-
-| Cột | Kiểu | Mô tả |
-|---|---|---|
-| `id` | UUID PK | |
-| `name` | string | Tên shop / thương hiệu |
-| `owner_id` | string | UUID FK → Users |
-| `language` | string | Ngôn ngữ mặc định, mặc định `vi` |
-| `timezone` | string | Múi giờ, mặc định `Asia/Ho_Chi_Minh` |
-| `created_at` | timestamp | |
-| `updated_at` | timestamp | |
-| `status` | enum | `active`, `deleted`|
-
-#### `workspace_members` — Thành viên workspace
-Chủ sở hữu có thể mời nhân viên vào workspace với vai trò `member`.
-Một user có thể thuộc nhiều workspace.
-
-| Cột | Kiểu | Mô tả |
-|---|---|---|
-| `id` | UUID PK | |
-| `workspace_id` | UUID FK → workspaces | |
-| `user_id` | UUID FK → users | |
-| `role` | enum | `owner` hoặc `member` |
-| `created_at` | timestamp | |
-| `status` | enum | `active`, `deleted`|
-
-Ràng buộc: `UNIQUE(workspace_id, user_id)` — một user chỉ có một vai trò trong một workspace.
-
----
-
-### 2.3 Nhóm Brand
+### 2.2 Nhóm Brand
 
 Đây là **bộ não thương hiệu** — nguồn đầu vào bắt buộc cho AI đề xuất nội dung.
 Nếu hồ sơ trống, AI không có gì để bám vào.
 
 #### `brand_profiles` — Hồ sơ thương hiệu
-Mỗi workspace có đúng một hồ sơ thương hiệu.
+Mỗi user có đúng một hồ sơ thương hiệu.
 
 | Cột | Kiểu | Mô tả |
 |---|---|---|
 | `id` | UUID PK | |
-| `workspace_id` | UUID FK → workspaces UNIQUE | Một workspace một hồ sơ |
+| `user_id` | UUID FK → users UNIQUE | Một user một hồ sơ |
 | `description` | text | Mô tả thương hiệu / sản phẩm |
 | `tone_of_voice` | text | Giọng điệu (ấm áp, chuyên nghiệp, hài hước...) |
 | `forbidden_words` | text | Từ/cụm từ cấm dùng |
@@ -99,7 +66,7 @@ AI phải rải ý tưởng theo đúng tỉ lệ mục tiêu của từng trụ
 | Cột | Kiểu | Mô tả |
 |---|---|---|
 | `id` | UUID PK | |
-| `workspace_id` | UUID FK → workspaces | |
+| `user_id` | UUID FK → users | |
 | `name` | string | Tên trụ cột |
 | `purpose` | text | Mục đích của trụ cột |
 | `target_ratio` | decimal | Tỉ lệ mục tiêu (0.0 – 1.0), tổng = 1.0 |
@@ -115,7 +82,7 @@ AI không được bịa thêm chân dung mới.
 | Cột | Kiểu | Mô tả |
 |---|---|---|
 | `id` | UUID PK | |
-| `workspace_id` | UUID FK → workspaces | |
+| `user_id` | UUID FK → users | |
 | `name` | string | Tên chân dung (VD: "Mẹ bỉm sữa 28-35") |
 | `age_range` | string | Độ tuổi |
 | `occupation` | string | Nghề nghiệp |
@@ -130,14 +97,14 @@ AI không được bịa thêm chân dung mới.
 
 ### 2.4 Nhóm Channel
 
-#### `channels` — Kênh đăng của workspace
+#### `channels` — Kênh đăng của user
 Các trang / profile Facebook của chính shop. Dùng để gắn bài đã đăng
 và thu thập số liệu về sau.
 
 | Cột | Kiểu | Mô tả |
 |---|---|---|
 | `id` | UUID PK | |
-| `workspace_id` | UUID FK → workspaces | |
+| `user_id` | UUID FK → users | |
 | `platform` | enum | `fanpage` (hiện tại chỉ Facebook) |
 | `channel_url` | string | URL trang Facebook |
 | `display_name` | string | Tên hiển thị |
@@ -146,17 +113,17 @@ và thu thập số liệu về sau.
 | `updated_at` | timestamp | |
 | `status` | enum | `active`, `deleted`|
 
-Ràng buộc: `UNIQUE(workspace_id, channel_url)`.
+Ràng buộc: `UNIQUE(user_id, channel_url)`.
 
 #### `followed_channels` — Kênh theo dõi để học
-Các trang Facebook của đối thủ / cùng ngành mà workspace muốn theo dõi
+Các trang Facebook của đối thủ / cùng ngành mà user muốn theo dõi
 để học chủ đề và công thức kể chuyện. Tách hoàn toàn khỏi `channels`
 vì mục đích ngược nhau.
 
 | Cột | Kiểu | Mô tả |
 |---|---|---|
 | `id` | UUID PK | |
-| `workspace_id` | UUID FK → workspaces | |
+| `user_id` | UUID FK → users | |
 | `platform` | enum | `fanpage` |
 | `channel_url` | string | URL trang theo dõi |
 | `display_name` | string | Tên hiển thị |
@@ -165,7 +132,7 @@ vì mục đích ngược nhau.
 | `created_at` | timestamp | |
 | `status` | enum | `active`, `deleted`|
 
-Ràng buộc: `UNIQUE(workspace_id, channel_url)`.
+Ràng buộc: `UNIQUE(user_id, channel_url)`.
 
 #### `trend_signals` — Tín hiệu xu hướng thu thập được
 Các bài đăng thu thập từ `followed_channels`. Đây là nguyên liệu thô
@@ -174,7 +141,7 @@ Các bài đăng thu thập từ `followed_channels`. Đây là nguyên liệu t
 | Cột | Kiểu | Mô tả |
 |---|---|---|
 | `id` | UUID PK | |
-| `workspace_id` | UUID FK → workspaces | |
+| `user_id` | UUID FK → users | |
 | `followed_channel_id` | UUID FK → followed_channels | Kênh nguồn |
 | `post_id` | string | Mã bài trên nền tảng (để tránh thu thập trùng) |
 | `title` | string | Tiêu đề / câu mở đầu bài |
@@ -204,7 +171,7 @@ trụ cột và chân dung **có thật** trong hồ sơ — không được b�
 | Cột | Kiểu | Mô tả |
 |---|---|---|
 | `id` | UUID PK | |
-| `workspace_id` | UUID FK → workspaces | |
+| `user_id` | UUID FK → users | |
 | `platform` | enum | Bề mặt đăng: `fanpage` |
 | `title` | string | Tiêu đề ý tưởng |
 | `approach_angle` | text | Góc tiếp cận |
@@ -225,7 +192,7 @@ Bài đăng được sinh từ ý tưởng. Người dùng có thể chỉnh s�
 | Cột | Kiểu | Mô tả |
 |---|---|---|
 | `id` | UUID PK | |
-| `workspace_id` | UUID FK → workspaces | |
+| `user_id` | UUID FK → users | |
 | `idea_id` | UUID FK → ideas (nullable) | Ý tưởng nguồn |
 | `channel_id` | UUID FK → channels (nullable) | Kênh dự kiến đăng |
 | `platform` | enum | `fanpage` |
@@ -258,7 +225,7 @@ archived
 | Cột | Kiểu | Mô tả |
 |---|---|---|
 | `id` | UUID PK | |
-| `workspace_id` | UUID FK → workspaces | |
+| `user_id` | UUID FK → users | |
 | `content_id` | UUID FK → contents | Bài chứa asset |
 | `type` | enum | `image`, `video` |
 | `file_path` | string | Đường dẫn file local (ảnh tải về) |
@@ -284,35 +251,16 @@ erDiagram
         string email
         string password
         string avatar
+        enum role "admin | user"
         timestamp last_login_at
         timestamp created_at
         enum status "active | blocked | deleted"
     }
 
-    %% ─── WORKSPACE ──────────────────────────────────────────────────────────
-    workspaces {
-        uuid id PK
-        string name 
-        uuid owner_id FK
-        string language
-        string timezone
-        timestamp created_at
-        timestamp updated_at
-        enum status "active | deleted"
-    }
-
-    workspace_members {
-        uuid id PK
-        uuid user_id FK
-        enum role "owner | member"
-        timestamp created_at
-        enum status "active | deleted"
-    }
-
     %% ─── BRAND ──────────────────────────────────────────────────────────────
     brand_profiles {
         uuid id PK
-        uuid workspace_id FK
+        uuid user_id FK
         text description
         text tone_of_voice
         text forbidden_words
@@ -324,7 +272,7 @@ erDiagram
 
     content_pillars {
         uuid id PK
-        uuid workspace_id FK
+        uuid user_id FK
         string name
         text purpose
         decimal target_ratio
@@ -336,7 +284,7 @@ erDiagram
 
     personas {
         uuid id PK
-        uuid workspace_id FK
+        uuid user_id FK
         string name
         string age_range
         string occupation
@@ -351,7 +299,7 @@ erDiagram
     %% ─── CHANNEL ────────────────────────────────────────────────────────────
     channels {
         uuid id PK
-        uuid workspace_id FK
+        uuid user_id FK
         enum platform "fanpage"
         string channel_url
         string display_name
@@ -363,7 +311,7 @@ erDiagram
 
     followed_channels {
         uuid id PK
-        uuid workspace_id FK
+        uuid user_id FK
         enum platform "fanpage"
         string channel_url
         string display_name
@@ -375,7 +323,7 @@ erDiagram
 
     trend_signals {
         uuid id PK
-        uuid workspace_id FK
+        uuid user_id FK
         uuid followed_channel_id FK
         string post_id
         string title
@@ -395,7 +343,7 @@ erDiagram
     %% ─── STUDIO ─────────────────────────────────────────────────────────────
     ideas {
         uuid id PK
-        uuid workspace_id FK
+        uuid user_id FK
         enum platform "fanpage"
         string title
         text approach_angle
@@ -413,7 +361,7 @@ erDiagram
 
     contents {
         uuid id PK
-        uuid workspace_id FK
+        uuid user_id FK
         uuid idea_id FK
         uuid channel_id FK
         enum platform "fanpage"
@@ -435,7 +383,7 @@ erDiagram
 
     assets {
         uuid id PK
-        uuid workspace_id FK
+        uuid user_id FK
         uuid content_id FK
         enum type "image | video"
         string file_path
@@ -447,14 +395,11 @@ erDiagram
     }
 
     %% ─── QUAN HỆ ────────────────────────────────
-    users ||--o{ workspace_members : "là thành viên"
-
-    workspaces ||--o{ workspace_members : "bao gồm"
-    workspaces ||--|| brand_profiles : "có hồ sơ thương hiệu"
-    workspaces ||--o{ content_pillars : "có trụ cột"    
-    workspaces ||--o{ personas : "có chân dung KH"
-    workspaces ||--o{ channels : "có kênh đăng"
-    workspaces ||--o{ followed_channels : "theo dõi kênh"
+    users ||--|| brand_profiles : "có hồ sơ thương hiệu"
+    users ||--o{ content_pillars : "có trụ cột"    
+    users ||--o{ personas : "có chân dung KH"
+    users ||--o{ channels : "có kênh đăng"
+    users ||--o{ followed_channels : "theo dõi kênh"
 
     followed_channels ||--o{ trend_signals : "cung cấp tín hiệu"
 
@@ -489,7 +434,7 @@ erDiagram
 
 ## 5. Các ràng buộc quan trọng
 
-1. **Cô lập workspace**: mọi bảng nghiệp vụ có `workspace_id` — query không được bỏ qua điều kiện này.
+1. **Cô lập user**: mọi bảng nghiệp vụ có `user_id` — query không được bỏ qua điều kiện này.
 2. **Không bịa trụ cột / chân dung**: `pillar_id` và `persona_id` trên `ideas` là nullable — AI trả về tên không khớp hồ sơ thì đặt `null`, không tự thêm bản ghi mới.
 3. **Không sao chép nội dung**: `trend_signals` chỉ cung cấp `story_formula` (công thức kể) cho AI, không truyền `caption` gốc vào prompt.
 4. **Trỏ được về nguồn**: mỗi ý tưởng có `trend_signal_id` để người dùng bấm xem bài gốc đã gợi ý.
