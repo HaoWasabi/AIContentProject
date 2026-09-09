@@ -37,16 +37,6 @@ dữ liệu của shop A không lộ sang shop B.
 | `created_at` | timestamp | Ngày tạo |
 | `status` | enum | `active`, `blocked`, `deleted`|
 
-#### `sessions` — Phiên đăng nhập
-| Cột | Kiểu | Mô tả |
-|---|---|---|
-| `id` | UUID PK | |
-| `session_token` | string UNIQUE | Token phiên |
-| `user_id` | UUID FK → users | |
-| `expires_at` | timestamp | Hết hạn phiên |
-| `device_hint` | string | Dấu vết thiết bị để người dùng nhận ra phiên |
-| `created_at` | timestamp | |
-
 ---
 
 ### 2.2 Nhóm Workspace
@@ -58,6 +48,7 @@ Mỗi shop là một workspace độc lập. Dữ liệu hoàn toàn cô lập g
 |---|---|---|
 | `id` | UUID PK | |
 | `name` | string | Tên shop / thương hiệu |
+| `owner_id` | string | UUID FK → Users |
 | `language` | string | Ngôn ngữ mặc định, mặc định `vi` |
 | `timezone` | string | Múi giờ, mặc định `Asia/Ho_Chi_Minh` |
 | `created_at` | timestamp | |
@@ -298,19 +289,11 @@ erDiagram
         enum status "active | blocked | deleted"
     }
 
-    sessions {
-        uuid id PK
-        string session_token
-        uuid user_id FK
-        timestamp expires_at
-        string device_hint
-        timestamp created_at
-    }
-
     %% ─── WORKSPACE ──────────────────────────────────────────────────────────
     workspaces {
         uuid id PK
-        string name
+        string name 
+        uuid owner_id FK
         string language
         string timezone
         timestamp created_at
@@ -320,7 +303,6 @@ erDiagram
 
     workspace_members {
         uuid id PK
-        uuid workspace_id FK
         uuid user_id FK
         enum role "owner | member"
         timestamp created_at
@@ -465,7 +447,6 @@ erDiagram
     }
 
     %% ─── QUAN HỆ ────────────────────────────────
-    users ||--o{ sessions : "có phiên"
     users ||--o{ workspace_members : "là thành viên"
 
     workspaces ||--o{ workspace_members : "bao gồm"
@@ -483,8 +464,6 @@ erDiagram
 
     ideas ||--o{ contents : "sinh nội dung"
     channels ||--o{ contents : "đăng lên kênh"
-    users ||--o{ contents : "tạo bởi"
-
     contents ||--o{ assets : "đính kèm tài nguyên"
 ```
 
