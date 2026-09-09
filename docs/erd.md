@@ -56,7 +56,6 @@ Mỗi shop là một workspace độc lập. Dữ liệu hoàn toàn cô lập g
 |---|---|---|
 | `id` | UUID PK | |
 | `name` | string | Tên shop / thương hiệu |
-| `owner_id` | UUID FK → users | Chủ sở hữu — người tạo workspace |
 | `language` | string | Ngôn ngữ mặc định, mặc định `vi` |
 | `timezone` | string | Múi giờ, mặc định `Asia/Ho_Chi_Minh` |
 | `created_at` | timestamp | |
@@ -299,7 +298,6 @@ erDiagram
     workspaces {
         uuid id PK
         string name
-        uuid owner_id FK
         string language
         string timezone
         timestamp created_at
@@ -447,14 +445,11 @@ erDiagram
     users ||--o{ workspaces : "sở hữu"
     users ||--o{ workspace_members : "là thành viên"
 
-    workspaces ||--o{ workspace_members : "có thành viên"
     workspaces ||--|| brand_profiles : "có hồ sơ thương hiệu"
     workspaces ||--o{ content_pillars : "có trụ cột"
     workspaces ||--o{ personas : "có chân dung KH"
     workspaces ||--o{ channels : "có kênh đăng"
     workspaces ||--o{ followed_channels : "theo dõi kênh"
-    workspaces ||--o{ ideas : "có ý tưởng"
-    workspaces ||--o{ contents : "có nội dung"
 
     followed_channels ||--o{ trend_signals : "cung cấp tín hiệu"
 
@@ -463,8 +458,6 @@ erDiagram
     personas ||--o{ ideas : "nhắm tới chân dung"
 
     ideas ||--o{ contents : "sinh nội dung"
-    content_pillars ||--o{ contents : "phân loại nội dung"
-    personas ||--o{ contents : "nhắm tới chân dung"
     channels ||--o{ contents : "đăng lên kênh"
     users ||--o{ contents : "tạo bởi"
 
