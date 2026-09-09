@@ -10,7 +10,6 @@ miễn phí, không quản lý đơn hàng / quảng cáo / tự động đăng 
 
 | Nhóm | Bảng | Mô tả |
 |---|---|---|
-| **Auth** | `users`, `oauth_accounts`, `sessions` | Tài khoản, đăng nhập OAuth |
 | **Workspace** | `workspaces`, `workspace_members` | Không gian làm việc, phân quyền thành viên |
 | **Brand** | `brand_profiles`, `content_pillars`, `personas` | Hồ sơ thương hiệu — nguồn đầu vào cho AI |
 | **Channel** | `channels`, `followed_channels`, `trend_signals` | Kênh của mình + kênh theo dõi + tín hiệu xu hướng |
@@ -26,33 +25,15 @@ dữ liệu của shop A không lộ sang shop B.
 ### 2.1 Nhóm Auth
 
 #### `users` — Tài khoản người dùng
-Được quản lý bởi Auth.js. Người dùng đăng nhập qua Google OAuth,
-không lưu mật khẩu trong hệ thống.
-
 | Cột | Kiểu | Mô tả |
 |---|---|---|
 | `id` | UUID PK | Khóa chính |
 | `name` | string | Tên hiển thị |
-| `email` | string UNIQUE | Email (không dùng làm khóa đăng nhập vì email Google đổi được) |
-| `email_verified_at` | timestamp | Thời điểm xác thực email |
+| `email` | string UNIQUE | Email |
+| `password` | string UNIQUE | Mật khẩu |
 | `avatar` | string | URL ảnh đại diện |
 | `last_login_at` | timestamp | Lần đăng nhập cuối — xác định tài khoản còn dùng không |
 | `created_at` | timestamp | Ngày tạo |
-
-#### `oauth_accounts` — Tài khoản OAuth liên kết
-Một user có thể liên kết nhiều provider (Google, sau này thêm Facebook...).
-Khóa duy nhất đặt trên `(provider, provider_account_id)`, không phải email.
-
-| Cột | Kiểu | Mô tả |
-|---|---|---|
-| `id` | UUID PK | |
-| `user_id` | UUID FK → users | |
-| `provider` | string | `google`, `facebook`... |
-| `provider_account_id` | string | ID tài khoản phía provider — bất biến |
-| `access_token` | string | Token truy cập |
-| `refresh_token` | string | Token làm mới |
-| `expires_at` | int | Thời điểm hết hạn token (unix timestamp) |
-| `created_at` | timestamp | |
 
 #### `sessions` — Phiên đăng nhập
 | Cột | Kiểu | Mô tả |
@@ -299,20 +280,9 @@ erDiagram
         uuid id PK
         string name
         string email
-        timestamp email_verified_at
+        string password
         string avatar
         timestamp last_login_at
-        timestamp created_at
-    }
-
-    oauth_accounts {
-        uuid id PK
-        uuid user_id FK
-        string provider
-        string provider_account_id
-        string access_token
-        string refresh_token
-        int expires_at
         timestamp created_at
     }
 
@@ -472,9 +442,7 @@ erDiagram
         timestamp created_at
     }
 
-    %% ─── QUAN HỆ ─────────────────────────────────────────────────────────────
-
-    users ||--o{ oauth_accounts : "liên kết OAuth"
+    %% ─── QUAN HỆ ────────────────────────────────
     users ||--o{ sessions : "có phiên"
     users ||--o{ workspaces : "sở hữu"
     users ||--o{ workspace_members : "là thành viên"
