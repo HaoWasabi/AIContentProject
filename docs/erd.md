@@ -32,8 +32,10 @@ dữ liệu của shop A không lộ sang shop B.
 | `email` | string UNIQUE | Email |
 | `password` | string UNIQUE | Mật khẩu |
 | `avatar` | string | URL ảnh đại diện |
+| `role` | enum | `admin`, `user`|
 | `last_login_at` | timestamp | Lần đăng nhập cuối — xác định tài khoản còn dùng không |
 | `created_at` | timestamp | Ngày tạo |
+| `status` | enum | `active`, `blocked`, `deleted`|
 
 #### `sessions` — Phiên đăng nhập
 | Cột | Kiểu | Mô tả |
@@ -60,6 +62,7 @@ Mỗi shop là một workspace độc lập. Dữ liệu hoàn toàn cô lập g
 | `timezone` | string | Múi giờ, mặc định `Asia/Ho_Chi_Minh` |
 | `created_at` | timestamp | |
 | `updated_at` | timestamp | |
+| `status` | enum | `active`, `deleted`|
 
 #### `workspace_members` — Thành viên workspace
 Chủ sở hữu có thể mời nhân viên vào workspace với vai trò `member`.
@@ -72,6 +75,7 @@ Một user có thể thuộc nhiều workspace.
 | `user_id` | UUID FK → users | |
 | `role` | enum | `owner` hoặc `member` |
 | `created_at` | timestamp | |
+| `status` | enum | `active`, `deleted`|
 
 Ràng buộc: `UNIQUE(workspace_id, user_id)` — một user chỉ có một vai trò trong một workspace.
 
@@ -111,6 +115,7 @@ AI phải rải ý tưởng theo đúng tỉ lệ mục tiêu của từng trụ
 | `lock_no_reduce` | boolean | Khóa không cho AI tự giảm tỉ lệ trụ cột này |
 | `created_at` | timestamp | |
 | `updated_at` | timestamp | |
+| `status` | enum | `active`, `deleted`|
 
 #### `personas` — Chân dung khách hàng
 Hồ sơ người mua mục tiêu. Ý tưởng nội dung phải gắn với một chân dung có thật —
@@ -128,6 +133,7 @@ AI không được bịa thêm chân dung mới.
 | `typical_phrases` | text | Câu họ hay nói |
 | `created_at` | timestamp | |
 | `updated_at` | timestamp | |
+| `status` | enum | `active`, `deleted`|
 
 ---
 
@@ -147,6 +153,7 @@ và thu thập số liệu về sau.
 | `is_active` | boolean | Đang hoạt động không |
 | `created_at` | timestamp | |
 | `updated_at` | timestamp | |
+| `status` | enum | `active`, `deleted`|
 
 Ràng buộc: `UNIQUE(workspace_id, channel_url)`.
 
@@ -165,6 +172,7 @@ vì mục đích ngược nhau.
 | `is_active` | boolean | |
 | `last_fetched_at` | timestamp | Lần thu thập dữ liệu gần nhất (`null` = chưa lần nào) |
 | `created_at` | timestamp | |
+| `status` | enum | `active`, `deleted`|
 
 Ràng buộc: `UNIQUE(workspace_id, channel_url)`.
 
@@ -188,6 +196,7 @@ Các bài đăng thu thập từ `followed_channels`. Đây là nguyên liệu t
 | `story_formula` | json | Công thức kể (hook, cấu trúc) — bóc tách sau khi thu thập |
 | `is_used` | boolean | Đã dùng làm nguồn cho ý tưởng chưa |
 | `created_at` | timestamp | |
+| `status` | enum | `active`, `deleted`|
 
 Ràng buộc: `UNIQUE(followed_channel_id, post_id)` — chống thu thập trùng.
 
@@ -217,6 +226,7 @@ trụ cột và chân dung **có thật** trong hồ sơ — không được b�
 | `is_exploration` | boolean | Ý tưởng thăm dò hướng mới, chưa có dữ liệu lịch sử |
 | `is_used` | boolean | Đã chuyển thành nội dung chưa |
 | `created_at` | timestamp | |
+| `status` | enum | `active`, `deleted`|
 
 #### `contents` — Nội dung bài đăng
 Bài đăng được sinh từ ý tưởng. Người dùng có thể chỉnh sửa sau khi AI tạo ra.
@@ -241,6 +251,7 @@ Bài đăng được sinh từ ý tưởng. Người dùng có thể chỉnh s�
 | `notes` | text | Ghi chú của người dùng |
 | `created_at` | timestamp | |
 | `updated_at` | timestamp | |
+| `status` | enum | `active`, `deleted`|
 
 Vòng đời trạng thái:
 ```
@@ -264,6 +275,7 @@ archived
 | `file_size_bytes` | int | Kích thước file |
 | `aspect_ratio` | string | Tỉ lệ khung hình (VD: `1:1`, `9:16`) |
 | `created_at` | timestamp | |
+| `status` | enum | `active`, `deleted`|
 
 Ràng buộc: `CHECK(file_path IS NOT NULL OR external_url IS NOT NULL)` — phải có ít nhất một trong hai.
 
@@ -283,6 +295,7 @@ erDiagram
         string avatar
         timestamp last_login_at
         timestamp created_at
+        enum status "active | blocked | deleted"
     }
 
     sessions {
@@ -302,6 +315,7 @@ erDiagram
         string timezone
         timestamp created_at
         timestamp updated_at
+        enum status "active | deleted"
     }
 
     workspace_members {
@@ -310,6 +324,7 @@ erDiagram
         uuid user_id FK
         enum role "owner | member"
         timestamp created_at
+        enum status "active | deleted"
     }
 
     %% ─── BRAND ──────────────────────────────────────────────────────────────
@@ -334,6 +349,7 @@ erDiagram
         boolean lock_no_reduce
         timestamp created_at
         timestamp updated_at
+        enum status "active | deleted"
     }
 
     personas {
@@ -347,6 +363,7 @@ erDiagram
         text typical_phrases
         timestamp created_at
         timestamp updated_at
+        enum status "active | deleted"
     }
 
     %% ─── CHANNEL ────────────────────────────────────────────────────────────
@@ -359,6 +376,7 @@ erDiagram
         boolean is_active
         timestamp created_at
         timestamp updated_at
+        enum status "active | deleted"
     }
 
     followed_channels {
@@ -370,6 +388,7 @@ erDiagram
         boolean is_active
         timestamp last_fetched_at
         timestamp created_at
+        enum status "active | deleted"
     }
 
     trend_signals {
@@ -387,6 +406,8 @@ erDiagram
         json story_formula
         boolean is_used
         timestamp created_at
+        enum status "active | deleted"
+
     }
 
     %% ─── STUDIO ─────────────────────────────────────────────────────────────
@@ -405,6 +426,7 @@ erDiagram
         boolean is_exploration
         boolean is_used
         timestamp created_at
+        enum status "active | deleted"
     }
 
     contents {
@@ -426,6 +448,7 @@ erDiagram
         text notes
         timestamp created_at
         timestamp updated_at
+        enum status "active | deleted"
     }
 
     assets {
@@ -438,6 +461,7 @@ erDiagram
         int file_size_bytes
         string aspect_ratio
         timestamp created_at
+        enum status "active | deleted"
     }
 
     %% ─── QUAN HỆ ────────────────────────────────
