@@ -442,11 +442,11 @@ erDiagram
 
     %% ─── QUAN HỆ ────────────────────────────────
     users ||--o{ sessions : "có phiên"
-    users ||--o{ workspaces : "sở hữu"
     users ||--o{ workspace_members : "là thành viên"
 
+    workspaces ||--o{ workspace_members : "bao gồm"
     workspaces ||--|| brand_profiles : "có hồ sơ thương hiệu"
-    workspaces ||--o{ content_pillars : "có trụ cột"
+    workspaces ||--o{ content_pillars : "có trụ cột"    
     workspaces ||--o{ personas : "có chân dung KH"
     workspaces ||--o{ channels : "có kênh đăng"
     workspaces ||--o{ followed_channels : "theo dõi kênh"
